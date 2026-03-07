@@ -6,7 +6,9 @@ import type {
 
 let _instance: ShortcutManager | null = null;
 
-export function getManager(options?: ShortcutManagerOptions): ShortcutManager {
+export function getManager(options?: ShortcutManagerOptions): ShortcutManager | null {
+  if (typeof window === "undefined") return null;
+
   if (!_instance) {
     _instance = new ShortcutManager(options);
     window.addEventListener("keydown", (e) => _instance!.handleKeyDown(e));

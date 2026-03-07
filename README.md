@@ -221,3 +221,16 @@ import type {
 ## License
 
 MIT
+
+
+## Nuxt 3
+
+Create `plugins/shortcut-manager.client.ts` in your Nuxt project:
+```ts
+import { getManager } from 'vue-shortcut-manager'
+
+export default defineNuxtPlugin(() => {
+  getManager()
+})
+```
+That's all — the `.client` suffix ensures it only runs in the browser.
