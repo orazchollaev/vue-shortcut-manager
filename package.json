@@ -1,0 +1,58 @@
+{
+  "name": "vue-shortcut-manager",
+  "version": "1.0.0",
+  "description": "Zero-config keyboard shortcut manager for Vue 3. No plugin, no main.ts setup.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist",
+    "dev": "vite build --watch",
+    "typecheck": "vue-tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "shortcuts",
+    "hotkeys",
+    "keyboard",
+    "keybindings",
+    "composable"
+  ],
+  "author": "orazchollaev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orazchollaev/vue-shortcut-manager"
+  },
+  "bugs": {
+    "url": "https://github.com/orazchollaev/vue-shortcut-manager/issues"
+  },
+  "homepage": "https://github.com/orazchollaev/vue-shortcut-manager#readme",
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^6.0.2",
+    "@vue/tsconfig": "^0.8.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1",
+    "vue": "^3.5.29",
+    "vue-tsc": "^3.1.5"
+  }
+}
