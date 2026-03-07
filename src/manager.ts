@@ -6,9 +6,10 @@ import type {
 
 let _instance: ShortcutManager | null = null;
 
-export function getManager(options?: ShortcutManagerOptions): ShortcutManager | null {
+export function getManager(
+  options?: ShortcutManagerOptions,
+): ShortcutManager | null {
   if (typeof window === "undefined") return null;
-
   if (!_instance) {
     _instance = new ShortcutManager(options);
     window.addEventListener("keydown", (e) => _instance!.handleKeyDown(e));
@@ -20,12 +21,15 @@ export function resetManager(): void {
   _instance = null;
 }
 
+// ---------------------------------------------------------------------------
+
 export class ShortcutManager {
   private shortcuts = new Map<string, RegisteredShortcut[]>();
   private activeScope = "global";
   private sequenceBuffer: string[] = [];
   private sequenceTimeout: ReturnType<typeof setTimeout> | null = null;
   private options: ShortcutManagerOptions;
+  private listeners = new Set<() => void>();
 
   constructor(options: ShortcutManagerOptions = {}) {
     this.options = {
@@ -43,11 +47,21 @@ export class ShortcutManager {
     return this.activeScope;
   }
 
+  onChange(fn: () => void): () => void {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+
+  private notify(): void {
+    this.listeners.forEach((fn) => fn());
+  }
+
   register(shortcut: Shortcut): string {
     const id = crypto.randomUUID();
     const key = shortcut.key.toLowerCase();
     const existing = this.shortcuts.get(key) ?? [];
 
+    // Conflict detection — warn and overwrite
     const conflict = existing.find(
       (s) => (s.scope ?? "global") === (shortcut.scope ?? "global"),
     );
@@ -63,6 +77,7 @@ export class ShortcutManager {
       { ...shortcut, key, id },
     ]);
 
+    this.notify();
     return id;
   }
 
@@ -85,6 +100,7 @@ export class ShortcutManager {
         this.shortcuts.set(key, filtered);
       }
     }
+    this.notify();
   }
 
   getAll(): RegisteredShortcut[] {
@@ -137,6 +153,7 @@ export class ShortcutManager {
 
   private findMatch(key: string): RegisteredShortcut | undefined {
     const list = this.shortcuts.get(key) ?? [];
+    // prefer active scope, fallback to global
     return (
       list.find((s) => (s.scope ?? "global") === this.activeScope) ??
       list.find((s) => (s.scope ?? "global") === "global")

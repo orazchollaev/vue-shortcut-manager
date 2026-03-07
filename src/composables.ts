@@ -1,6 +1,8 @@
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { getManager } from "./manager";
 import type { Shortcut, RegisteredShortcut } from "./types";
+
+// ---------- useShortcut ----------
 
 export function useShortcut(
   key: string,
@@ -10,7 +12,6 @@ export function useShortcut(
   let id: string;
 
   onMounted(() => {
-    // ✅ getManager() is now called lazily inside onMounted — safe on SSR
     const manager = getManager();
     if (!manager) return;
     id = manager.register({ key, handler, ...options });
@@ -21,6 +22,8 @@ export function useShortcut(
     getManager()?.unregisterById(id);
   });
 }
+
+// ---------- useShortcuts ----------
 
 export function useShortcuts(shortcuts: Shortcut[]): void {
   const ids: string[] = [];
@@ -38,6 +41,8 @@ export function useShortcuts(shortcuts: Shortcut[]): void {
   });
 }
 
+// ---------- useShortcutScope ----------
+
 export function useShortcutScope(scope: string): void {
   let previousScope: string;
 
@@ -53,45 +58,23 @@ export function useShortcutScope(scope: string): void {
   });
 }
 
+// ---------- useShortcutList ----------
+
 export function useShortcutList(scope?: string) {
-  // ✅ Use a plain ref instead of computed — the manager's Map is not reactive.
-  //    We populate it on mount and after every register/unregister by patching
-  //    the manager's register/unregisterById methods on the fly.
   const shortcuts = ref<RegisteredShortcut[]>([]);
 
   const refresh = () => {
     const manager = getManager();
     if (!manager) return;
-    shortcuts.value = scope
-      ? manager.getByScope(scope)
-      : manager.getAll();
+    shortcuts.value = scope ? manager.getByScope(scope) : manager.getAll();
   };
 
   onMounted(() => {
     const manager = getManager();
     if (!manager) return;
-
-    // Patch register/unregisterById to trigger a re-read after each mutation
-    const originalRegister = manager.register.bind(manager);
-    const originalUnregister = manager.unregisterById.bind(manager);
-
-    manager.register = (shortcut) => {
-      const id = originalRegister(shortcut);
-      refresh();
-      return id;
-    };
-
-    manager.unregisterById = (id) => {
-      originalUnregister(id);
-      refresh();
-    };
-
-    refresh(); // initial read
-  });
-
-  onUnmounted(() => {
-    // Nothing to clean up — patches are intentionally persistent on the
-    // singleton so all future registrations keep the list reactive.
+    refresh();
+    const unsubscribe = manager.onChange(refresh);
+    onUnmounted(unsubscribe);
   });
 
   return { shortcuts };

@@ -16,3 +16,5 @@ export interface ShortcutManagerOptions {
 export interface RegisteredShortcut extends Shortcut {
   id: string;
 }
+
+export type ChangeListener = () => void;
