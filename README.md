@@ -162,6 +162,49 @@ const { shortcuts } = useShortcutList("editor"); // filtered by scope
 </script>
 ```
 
+## Nuxt 4
+
+### 1. Create a plugin
+
+```ts
+// plugins/shortcut-manager.client.ts
+import { defineNuxtPlugin } from "#app";
+import { getManager } from "vue-shortcut-manager";
+
+export default defineNuxtPlugin(() => {
+  getManager();
+});
+```
+
+### 2. Use composables
+
+```vue
+<script setup lang="ts">
+import { useShortcut } from "vue-shortcut-manager";
+
+useShortcut("ctrl+k", () => openSearch(), {
+  description: "Open search",
+});
+</script>
+```
+
+### 3. Add the cheatsheet
+
+```vue
+<!-- app.vue -->
+<template>
+  <NuxtPage />
+  <ShortcutCheatsheet />
+</template>
+
+<script setup lang="ts">
+import { ShortcutCheatsheet } from "vue-shortcut-manager";
+</script>
+```
+
+> **Note:** The `.client.ts` suffix tells Nuxt to run this plugin in the browser only.
+> Composables automatically skip execution during SSR — no extra configuration needed.
+
 ---
 
 ## API
@@ -221,16 +264,3 @@ import type {
 ## License
 
 MIT
-
-
-## Nuxt 3
-
-Create `plugins/shortcut-manager.client.ts` in your Nuxt project:
-```ts
-import { getManager } from 'vue-shortcut-manager'
-
-export default defineNuxtPlugin(() => {
-  getManager()
-})
-```
-That's all — the `.client` suffix ensures it only runs in the browser.
