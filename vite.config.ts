@@ -10,6 +10,7 @@ export default defineConfig({
       name: "VueShortcutManager",
       fileName: "index",
     },
+    cssCodeSplit: false,
     rollupOptions: {
       external: ["vue"],
       output: {
