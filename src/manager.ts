@@ -4,11 +4,17 @@ import type {
   ShortcutManagerOptions,
 } from "./types";
 
+// ---------------------------------------------------------------------------
+// Lazy singleton — no plugin or main.ts setup needed.
+// Manager is created on the first composable call and lives for the app lifetime.
+// ---------------------------------------------------------------------------
+
 let _instance: ShortcutManager | null = null;
 
 export function getManager(
   options?: ShortcutManagerOptions,
 ): ShortcutManager | null {
+  // SSR guard — window does not exist on the server
   if (typeof window === "undefined") return null;
   if (!_instance) {
     _instance = new ShortcutManager(options);
@@ -17,6 +23,7 @@ export function getManager(
   return _instance;
 }
 
+/** Reset singleton — useful in tests or SSR */
 export function resetManager(): void {
   _instance = null;
 }
@@ -39,6 +46,8 @@ export class ShortcutManager {
     };
   }
 
+  // ---------- Scope ----------
+
   setScope(scope: string): void {
     this.activeScope = scope;
   }
@@ -46,6 +55,8 @@ export class ShortcutManager {
   getScope(): string {
     return this.activeScope;
   }
+
+  // ---------- Change listeners (for reactivity) ----------
 
   onChange(fn: () => void): () => void {
     this.listeners.add(fn);
@@ -56,8 +67,13 @@ export class ShortcutManager {
     this.listeners.forEach((fn) => fn());
   }
 
+  // ---------- Register / Unregister ----------
+
   register(shortcut: Shortcut): string {
-    const id = crypto.randomUUID();
+    const id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    });
     const key = shortcut.key.toLowerCase();
     const existing = this.shortcuts.get(key) ?? [];
 
@@ -103,6 +119,8 @@ export class ShortcutManager {
     this.notify();
   }
 
+  // ---------- List (Cheatsheet) ----------
+
   getAll(): RegisteredShortcut[] {
     return Array.from(this.shortcuts.values()).flat();
   }
@@ -110,6 +128,8 @@ export class ShortcutManager {
   getByScope(scope: string): RegisteredShortcut[] {
     return this.getAll().filter((s) => (s.scope ?? "global") === scope);
   }
+
+  // ---------- Key Parsing ----------
 
   private parseEvent(e: KeyboardEvent): string {
     const parts: string[] = [];
@@ -153,7 +173,6 @@ export class ShortcutManager {
 
   private findMatch(key: string): RegisteredShortcut | undefined {
     const list = this.shortcuts.get(key) ?? [];
-    // prefer active scope, fallback to global
     return (
       list.find((s) => (s.scope ?? "global") === this.activeScope) ??
       list.find((s) => (s.scope ?? "global") === "global")
