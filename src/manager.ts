@@ -131,6 +131,23 @@ export class ShortcutManager {
 
   // ---------- Key Parsing ----------
 
+  private static KEY_ALIASES: Record<string, string> = {
+    " ": "space",
+    arrowup: "up",
+    arrowdown: "down",
+    arrowleft: "left",
+    arrowright: "right",
+    escape: "escape",
+    enter: "enter",
+    backspace: "backspace",
+    tab: "tab",
+    delete: "delete",
+    home: "home",
+    end: "end",
+    pageup: "pageup",
+    pagedown: "pagedown",
+  };
+
   private parseEvent(e: KeyboardEvent): string {
     const parts: string[] = [];
     if (e.ctrlKey) parts.push("ctrl");
@@ -138,13 +155,18 @@ export class ShortcutManager {
     if (e.altKey) parts.push("alt");
     if (e.metaKey) parts.push("meta");
 
-    const key = e.key.toLowerCase();
-    if (!["control", "shift", "alt", "meta"].includes(key)) {
-      parts.push(key);
+    const raw = e.key.toLowerCase();
+    if (["control", "shift", "alt", "meta"].includes(raw)) {
+      return parts.join("+");
     }
+
+    const key = ShortcutManager.KEY_ALIASES[raw] ?? raw;
+    parts.push(key);
 
     return parts.join("+");
   }
+
+  // ---------- Event Handler ----------
 
   handleKeyDown(e: KeyboardEvent): void {
     const key = this.parseEvent(e);
@@ -165,6 +187,7 @@ export class ShortcutManager {
       return;
     }
 
+    // Normal match
     const match = this.findMatch(key);
     if (match) {
       this.triggerShortcut(match, e);
@@ -184,10 +207,15 @@ export class ShortcutManager {
     e: KeyboardEvent,
   ): void {
     if (shortcut.whenFocused !== undefined && shortcut.whenFocused !== null) {
-      const el =
-        "value" in (shortcut.whenFocused as object)
-          ? (shortcut.whenFocused as { value: HTMLElement | null }).value
-          : (shortcut.whenFocused as HTMLElement);
+      const isRef =
+        shortcut.whenFocused !== null &&
+        typeof shortcut.whenFocused === "object" &&
+        !(shortcut.whenFocused instanceof Element) &&
+        "value" in (shortcut.whenFocused as object);
+
+      const el = isRef
+        ? (shortcut.whenFocused as { value: HTMLElement | null }).value
+        : (shortcut.whenFocused as HTMLElement);
 
       if (!el || document.activeElement !== el) return;
     }

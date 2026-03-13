@@ -15,7 +15,6 @@
         <h3 :style="styles.scopeTitle">{{ group.scope }}</h3>
         <ul :style="styles.list">
           <li v-for="s in group.shortcuts" :key="s.id" :style="styles.item">
-            <!-- Left: description + badges -->
             <div :style="styles.itemLeft">
               <span :style="styles.desc">{{ s.description ?? s.key }}</span>
               <div :style="styles.badges">
@@ -197,4 +196,3 @@ const styles = {
   },
 };
 </script>
-git
