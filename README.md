@@ -29,13 +29,7 @@
 
 ```bash
 pnpm add vue-shortcut-manager
-# or
-npm install vue-shortcut-manager
-# or
-yarn add vue-shortcut-manager
 ```
-
-**No `main.ts` changes needed.** The manager initializes itself on the first composable call.
 
 ---
 
@@ -47,9 +41,7 @@ yarn add vue-shortcut-manager
 <script setup lang="ts">
 import { useShortcut } from "vue-shortcut-manager";
 
-useShortcut("ctrl+k", () => openSearch(), {
-  description: "Open search",
-});
+useShortcut("ctrl+k", () => openSearch(), { description: "Open search" });
 </script>
 ```
 
@@ -69,24 +61,17 @@ useShortcuts([
 
 ### Scoped shortcuts
 
-Scope activates when the component mounts and restores the previous scope on unmount.
-
 ```vue
 <script setup lang="ts">
 import { useShortcutScope, useShortcut } from "vue-shortcut-manager";
 
 useShortcutScope("editor");
 
-useShortcut("ctrl+b", toggleBold, {
-  scope: "editor",
-  description: "Bold",
-});
+useShortcut("ctrl+b", toggleBold, { scope: "editor", description: "Bold" });
 </script>
 ```
 
 ### Sequence shortcuts
-
-Press keys within 1 second of each other.
 
 ```vue
 <script setup lang="ts">
@@ -97,7 +82,9 @@ useShortcut("g i", () => router.push("/inbox"), { description: "Go inbox" });
 </script>
 ```
 
-### whenFocused — only fire when an element is focused
+### whenFocused
+
+Only fires when a specific element is focused.
 
 ```vue
 <template>
@@ -110,29 +97,12 @@ import { useShortcut } from "vue-shortcut-manager";
 
 const searchInput = ref<HTMLElement | null>(null);
 
-useShortcut("escape", () => clearSearch(), {
-  whenFocused: searchInput,
-  description: "Clear search",
-});
-
-useShortcut("ctrl+enter", () => submitSearch(), {
-  whenFocused: searchInput,
-  description: "Submit search",
-});
+useShortcut("escape", () => clearSearch(), { whenFocused: searchInput });
+useShortcut("ctrl+enter", () => submit(), { whenFocused: searchInput });
 </script>
 ```
 
-Also works with raw `HTMLElement`:
-
-```ts
-useShortcut("ctrl+enter", submit, {
-  whenFocused: document.getElementById("myInput"),
-});
-```
-
 ### Cheatsheet modal
-
-Add `<ShortcutCheatsheet />` anywhere in your app. Press `shift+?` to open it.
 
 ```vue
 <template>
@@ -145,26 +115,27 @@ import { ShortcutCheatsheet } from "vue-shortcut-manager";
 </script>
 ```
 
-Custom toggle key:
+Press `shift+?` to open. Custom toggle key: `<ShortcutCheatsheet toggle-key="ctrl+/" />`
 
-```vue
-<ShortcutCheatsheet toggle-key="ctrl+/" />
+---
+
+## Key syntax
+
+Keys are case-insensitive strings joined with `+`:
+
+```
+ctrl+k        ctrl+shift+z    meta+s
+escape        enter           space
+up            down            left            right
+backspace     tab             delete
+g h           g i             (sequences, space-separated)
 ```
 
-### Reactive shortcut list (custom cheatsheet)
+Modifier keys: `ctrl`, `shift`, `alt`, `meta`
 
-```vue
-<script setup lang="ts">
-import { useShortcutList } from "vue-shortcut-manager";
+---
 
-const { shortcuts } = useShortcutList(); // all scopes
-const { shortcuts } = useShortcutList("editor"); // filtered by scope
-</script>
-```
-
-## Nuxt 4
-
-### 1. Create a plugin
+## Nuxt 3
 
 ```ts
 // plugins/shortcut-manager.client.ts
@@ -176,34 +147,7 @@ export default defineNuxtPlugin(() => {
 });
 ```
 
-### 2. Use composables
-
-```vue
-<script setup lang="ts">
-import { useShortcut } from "vue-shortcut-manager";
-
-useShortcut("ctrl+k", () => openSearch(), {
-  description: "Open search",
-});
-</script>
-```
-
-### 3. Add the cheatsheet
-
-```vue
-<!-- app.vue -->
-<template>
-  <NuxtPage />
-  <ShortcutCheatsheet />
-</template>
-
-<script setup lang="ts">
-import { ShortcutCheatsheet } from "vue-shortcut-manager";
-</script>
-```
-
-> **Note:** The `.client.ts` suffix tells Nuxt to run this plugin in the browser only.
-> Composables automatically skip execution during SSR — no extra configuration needed.
+> The `.client.ts` suffix ensures this runs in the browser only. Composables automatically skip execution during SSR.
 
 ---
 
@@ -217,35 +161,13 @@ import { ShortcutCheatsheet } from "vue-shortcut-manager";
 | `scope`       | `string`                                          | Scope name (default: `'global'`)  |
 | `whenFocused` | `Ref<HTMLElement \| null> \| HTMLElement \| null` | Only fire when element is focused |
 
-### `useShortcuts(shortcuts[])`
+### `useShortcuts(shortcuts[])` — register multiple at once
 
-Same as calling `useShortcut` multiple times. Each item accepts the same options.
+### `useShortcutScope(scope)` — activate scope on mount, restore on unmount
 
-### `useShortcutScope(scope)`
+### `useShortcutList(scope?)` — returns `{ shortcuts }`, a reactive list
 
-Activates `scope` on mount, restores previous scope on unmount.
-
-### `useShortcutList(scope?)`
-
-Returns `{ shortcuts }` — a computed ref of `RegisteredShortcut[]`.
-
-### `<ShortcutCheatsheet toggle-key="shift+?" />`
-
-Built-in modal listing all registered shortcuts grouped by scope.
-
----
-
-## Key syntax
-
-Keys are case-insensitive strings joined with `+`:
-
-```
-ctrl+k       ctrl+shift+z     meta+s
-alt+f4       shift+?          escape
-g h          g i              (sequences, space-separated)
-```
-
-Modifier keys: `ctrl`, `shift`, `alt`, `meta`
+### `<ShortcutCheatsheet toggle-key="shift+?" />` — built-in modal
 
 ---
 
