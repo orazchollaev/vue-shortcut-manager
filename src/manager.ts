@@ -171,27 +171,42 @@ export class ShortcutManager {
   handleKeyDown(e: KeyboardEvent): void {
     const key = this.parseEvent(e);
 
+    if (!key || key === "") return;
+
     this.sequenceBuffer.push(key);
     if (this.sequenceTimeout) clearTimeout(this.sequenceTimeout);
-    this.sequenceTimeout = setTimeout(() => {
-      this.sequenceBuffer = [];
-    }, 1000);
 
     const sequenceKey = this.sequenceBuffer.join(" ");
-    const sequenceMatch = this.findMatch(sequenceKey);
 
+    const sequenceMatch = this.findMatch(sequenceKey);
     if (sequenceMatch) {
       this.sequenceBuffer = [];
-      if (this.sequenceTimeout) clearTimeout(this.sequenceTimeout);
       this.triggerShortcut(sequenceMatch, e);
       return;
     }
 
-    // Normal match
+    if (this.hasSequenceStartingWith(sequenceKey)) {
+      this.sequenceTimeout = setTimeout(() => {
+        this.sequenceBuffer = [];
+      }, 1000);
+      return;
+    }
+
+    this.sequenceBuffer = [];
+
     const match = this.findMatch(key);
     if (match) {
       this.triggerShortcut(match, e);
     }
+  }
+
+  private hasSequenceStartingWith(prefix: string): boolean {
+    for (const key of this.shortcuts.keys()) {
+      if (key.includes(" ") && key.startsWith(prefix) && key !== prefix) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private findMatch(key: string): RegisteredShortcut | undefined {
