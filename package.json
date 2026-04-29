@@ -1,6 +1,6 @@
 {
   "name": "vue-shortcut-manager",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Zero-config keyboard shortcut manager for Vue 3. No plugin, no main.ts setup.",
   "type": "module",
   "main": "./dist/index.cjs",
