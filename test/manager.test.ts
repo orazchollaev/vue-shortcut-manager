@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { ShortcutManager, resetManager, getManager } from "../src/manager";
 
 function createKeyEvent(
@@ -329,13 +329,12 @@ describe("ShortcutManager", () => {
   describe("getManager SSR Guard", () => {
     it("window yoksa null döner", () => {
       resetManager();
-      const originalWindow = global.window;
-      // @ts-expect-error
-      delete global.window;
+      const originalWindow = globalThis.window;
+      delete (globalThis as any).window;
 
       expect(getManager()).toBeNull();
 
-      global.window = originalWindow;
+      globalThis.window = originalWindow;
       resetManager();
     });
   });

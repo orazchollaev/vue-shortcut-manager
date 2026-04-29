@@ -9,6 +9,7 @@ export default defineConfig({
       entry: resolve(__dirname, "src/index.ts"),
       name: "VueShortcutManager",
       fileName: "index",
+      formats: ["es", "cjs"],
     },
     cssCodeSplit: false,
     rollupOptions: {
